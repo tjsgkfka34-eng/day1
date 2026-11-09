@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>일본 여행 가이드</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      color: #223;
+      background: #fffaf0;
+      line-height: 1.7;
+    }
+
+    /* 헤더 / 메뉴 */
+    header {
+      position: sticky; top: 0; z-index: 10;
+      background: #c9efff; color: #0b5b7a;
+      box-shadow: 0 2px 6px rgba(80,160,200,.25);
+    }
+    .bar {
+      max-width: 960px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px;
+    }
+    .logo { font-size: 1.1rem; font-weight: bold; }
+    nav ul { display: flex; list-style: none; gap: 4px; }
+    nav a {
+      display: block; padding: 8px 14px; border-radius: 6px;
+      color: #0b5b7a; text-decoration: none;
+    }
+    nav a:hover { background: rgba(255,255,255,.7); }
+    nav a.active { background: #ffd966; color: #5a3d00; font-weight: bold; }
+
+    /* 햄버거 버튼 (모바일에서만 표시) */
+    .hamburger {
+      display: none; background: none; border: 0; cursor: pointer;
+      width: 40px; height: 40px; position: relative;
+    }
+    .hamburger span {
+      position: absolute; left: 8px; right: 8px; height: 3px;
+      background: #0b5b7a; border-radius: 2px; transition: .25s;
+    }
+    .hamburger span:nth-child(1) { top: 12px; }
+    .hamburger span:nth-child(2) { top: 19px; }
+    .hamburger span:nth-child(3) { top: 26px; }
+    .hamburger.open span:nth-child(1) { top: 19px; transform: rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { top: 19px; transform: rotate(-45deg); }
+
+    /* 페이지(섹션) */
+    main { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; }
+    .page { display: none; }
+    .page.show { display: block; animation: fade .3s; }
+    @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    h1 { font-size: 1.6rem; margin-bottom: 8px; color: #2a9fd6; }
+    .lead { color: #556; margin-bottom: 20px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+    .card { background: #fff; border-radius: 12px; padding: 18px; border-top: 4px solid #ffc2d4; box-shadow: 0 2px 8px rgba(255,170,190,.3); }
+    .card h2 { font-size: 1.1rem; margin-bottom: 6px; }
+    footer { text-align: center; color: #778; padding: 20px; font-size: .9rem; }
+
+    /* 학습 애니메이션 버튼 */
+    .tools { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+    .tools button {
+      font: inherit; cursor: pointer; padding: 10px 16px; border-radius: 10px;
+      border: 2px solid #c9efff; background: #fff; color: #0b5b7a;
+    }
+    .tools button:hover { background: #e3f6ff; }
+    .tools button.active { background: #ffd966; border-color: #ffc933; color: #5a3d00; font-weight: bold; }
+    .viewer { width: 100%; height: 80vh; min-height: 480px; border: 0; border-radius: 12px; background: #130f2e; box-shadow: 0 2px 8px rgba(80,160,200,.3); }
+    .viewer-empty { color: #778; padding: 40px 0; text-align: center; }
+
+    /* Pixabay 대표 이미지 */
+    .hero {
+      position: relative; height: 220px; border-radius: 12px; margin-bottom: 16px;
+      background: #c9efff center / cover no-repeat; display: none;
+      box-shadow: 0 2px 8px rgba(80,160,200,.3);
+    }
+    .hero.on { display: block; }
+    .hero a {
+      position: absolute; right: 8px; bottom: 8px; font-size: .75rem; color: #fff; text-decoration: none;
+      background: rgba(0,0,0,.5); padding: 2px 8px; border-radius: 999px;
+    }
+    @media (max-width: 700px) { .hero { height: 160px; } }
+
+    /* API 키 입력 */
+    .keybox { max-width: 960px; margin: 0 auto; padding: 0 16px; }
+    .keybox details { background: #fff; border-radius: 10px; padding: 10px 14px; border: 2px solid #c9efff; }
+    .keybox summary { cursor: pointer; color: #0b5b7a; font-weight: bold; }
+    .keybox form { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .keybox input { flex: 1; min-width: 220px; font: inherit; padding: 8px 10px; border: 2px solid #c9efff; border-radius: 8px; }
+    .keybox button { font: inherit; padding: 8px 14px; border-radius: 8px; border: 2px solid #c9efff; background: #ffd966; color: #5a3d00; cursor: pointer; }
+    .keybox button[type=button] { background: #fff; color: #0b5b7a; }
+    .keybox p { margin-top: 8px; font-size: .85rem; color: #778; }
+
+    /* 모바일 */
+    @media (max-width: 700px) {
+      .hamburger { display: block; }
+      nav {
+        position: absolute; top: 100%; left: 0; right: 0;
+        background: #e3f6ff; max-height: 0; overflow: hidden;
+        transition: max-height .3s;
+      }
+      nav.open { max-height: 400px; box-shadow: 0 6px 8px rgba(80,160,200,.25); }
+      nav ul { flex-direction: column; padding: 8px 16px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="bar">
+      <div class="logo">🌴 반갑습니다. 선하람</div>
+      <button class="hamburger" id="hamburger" aria-label="메뉴 열기" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav id="nav">
+        <ul>
+          <li><a href="#jeju">일본</a></li>
+          <li><a href="#hotel">호텔</a></li>
+          <li><a href="#food">음식점</a></li>
+          <li><a href="#bus">버스</a></li>
+          <li><a href="#sight">관광지</a></li>
+          <li><a href="#study">배열학습</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page" id="jeju">
+      <h1>🏝️ 일본</h1>
+      <div class="hero" data-q="japan landscape"></div>
+      <p class="lead">푸른 바다와 한라산, 돌담과 오름이 어우러진 대한민국 대표 섬 여행지입니다.</p>
+      <div class="cards">
+        <div class="card"><h2>🌤️ 여행하기 좋은 때</h2><p>유채꽃이 피는 봄(3~5월)과 단풍이 드는 가을(9~11월)이 특히 좋습니다.</p></div>
+        <div class="card"><h2>✈️ 가는 방법</h2><p>김포·김해 등 전국 공항에서 비행기로 1시간 안팎이면 도착합니다.</p></div>
+        <div class="card"><h2>🚗 이동 수단</h2><p>렌터카 또는 버스를 이용하며, 권역별로 일정을 나누면 편합니다.</p></div>
+      </div>
+    </section>
+
+    <section class="page" id="hotel">
+      <h1>🏨 호텔</h1>
+      <div class="hero" data-q="hotel room"></div>
+      <p class="lead">여행 스타일에 맞는 숙소를 골라 보세요.</p>
+      <div class="cards">
+        <div class="card"><h2>🌊 오션뷰 호텔</h2><p>중문·서귀포 해안가에서 바다 전망을 즐길 수 있습니다.</p></div>
+        <div class="card"><h2>🏙️ 시내 호텔</h2><p>제주시 공항 근처로 이동이 편리하고 맛집과 가깝습니다.</p></div>
+        <div class="card"><h2>🏡 펜션 · 게스트하우스</h2><p>가족·친구 단위 여행에 알맞고 합리적인 가격대가 많습니다.</p></div>
+      </div>
+    </section>
+
+    <section class="page" id="food">
+      <h1>🍽️ 음식점</h1>
+      <div class="hero" data-q="japanese food"></div>
+      <p class="lead">제주에서 꼭 먹어봐야 할 대표 음식입니다.</p>
+      <div class="cards">
+        <div class="card"><h2>🐖 흑돼지</h2><p>쫄깃하고 고소한 제주 흑돼지 구이.</p></div>
+        <div class="card"><h2>🐟 갈치조림</h2><p>두툼한 갈치에 무를 넣고 얼큰하게 조린 요리.</p></div>
+        <div class="card"><h2>🍜 고기국수</h2><p>진한 돼지 육수에 말아 낸 제주식 국수.</p></div>
+        <div class="card"><h2>🍊 감귤 디저트</h2><p>감귤 주스, 감귤 아이스크림, 한라봉 케이크.</p></div>
+      </div>
+    </section>
+
+    <section class="page" id="bus">
+      <h1>🚌 버스</h1>
+      <div class="hero" data-q="city bus"></div>
+      <p class="lead">대중교통으로 제주를 여행하는 방법입니다.</p>
+      <div class="cards">
+        <div class="card"><h2>🔵 간선버스</h2><p>제주시와 서귀포를 잇는 주요 노선입니다.</p></div>
+        <div class="card"><h2>🟢 지선버스</h2><p>마을과 관광지를 연결하는 노선입니다.</p></div>
+        <div class="card"><h2>💳 이용 팁</h2><p>교통카드를 준비하고, 배차 간격이 길 수 있어 시간표를 미리 확인하세요.</p></div>
+      </div>
+    </section>
+
+    <section class="page" id="sight">
+      <h1>📸 관광지</h1>
+      <div class="hero" data-q="japan temple"></div>
+      <p class="lead">제주의 대표 명소를 소개합니다.</p>
+      <div class="cards">
+        <div class="card"><h2>⛰️ 한라산</h2><p>백록담을 오르는 등산 코스로 유명합니다.</p></div>
+        <div class="card"><h2>🌅 성산일출봉</h2><p>유네스코 세계자연유산으로 일출 명소입니다.</p></div>
+        <div class="card"><h2>🌊 협재해변</h2><p>에메랄드빛 바다와 비양도 풍경이 아름답습니다.</p></div>
+        <div class="card"><h2>🌋 만장굴</h2><p>세계적 규모의 용암동굴입니다.</p></div>
+      </div>
+    </section>
+
+    <section class="page" id="study">
+      <h1>🔢 배열학습 애니메이션</h1>
+      <p class="lead">버튼을 누르면 해당 애니메이션이 아래에 표시됩니다.</p>
+      <div class="tools" id="tools">
+        <button data-src="array-animation.html">1. 숫자 배열 합계</button>
+        <button data-src="shopping-array-animation.html">2. 장바구니 배열(3종)</button>
+        <button data-src="data-sum-animation.html">3. 배열 합계 · NaN 오타</button>
+        <button data-src="cart-loop-animation.html">4. 장바구니 반복문(50개)</button>
+      </div>
+      <div id="viewerBox"><p class="viewer-empty">👆 위의 버튼을 눌러 보세요.</p></div>
+    </section>
+  </main>
+
+  <div class="keybox">
+    <details id="keyDetails">
+      <summary>🔑 Pixabay API 키 설정</summary>
+      <form id="keyForm" autocomplete="off">
+        <input type="password" id="keyInput" placeholder="발급받은 Pixabay API 키를 붙여넣으세요" aria-label="Pixabay API 키">
+        <button type="submit">저장</button>
+        <button type="button" id="keyClear">삭제</button>
+      </form>
+      <p id="keyMsg">키는 이 브라우저에만 저장되며 GitHub에는 올라가지 않습니다.</p>
+    </details>
+  </div>
+
+  <footer>© 일본 여행 가이드 · 이재오</footer>
+
+  <!-- Pixabay API 키는 config.js 에 보관 (GitHub에는 올리지 않음). 예시: config.example.js -->
+  <script src="config.js" onerror="void 0"></script>
+  <script>
+    var pages =document.querySelectorAll('.page');
+    var links = document.querySelectorAll('nav a');
+    var nav = document.getElementById('nav');
+    var burger = document.getElementById('hamburger');
+
+    function closeMenu() {
+      nav.classList.remove('open');
+      burger.classList.remove('open');
+      burger.setAttribute('aria-expanded', 'false');
+    }
+
+    function show() {
+      var id = location.hash.slice(1);
+      if (!document.getElementById(id)) id = 'jeju';
+      pages.forEach(function (p) { p.classList.toggle('show', p.id === id); });
+      links.forEach(function (a) { a.classList.toggle('active', a.getAttribute('href') === '#' + id); });
+      window.scrollTo(0, 0);
+      closeMenu();
+    }
+
+    burger.addEventListener('click', function () {
+      var open = nav.classList.toggle('open');
+      burger.classList.toggle('open', open);
+      burger.setAttribute('aria-expanded', open);
+    });
+
+    document.querySelectorAll('#tools button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        document.querySelectorAll('#tools button').forEach(function (x) { x.classList.toggle('active', x === b); });
+        var box = document.getElementById('viewerBox');
+        box.innerHTML = '';
+        var f = document.createElement('iframe');
+        f.className = 'viewer';
+        f.title = b.textContent;
+        f.src = b.getAttribute('data-src');
+        box.appendChild(f);
+      });
+    });
+
+    /* ---- Pixabay 이미지 불러오기 ---- */
+    // 키 우선순위: config.js → 화면에서 저장한 키(localStorage)
+    function getKey() {
+      if (window.PIXABAY_KEY) return window.PIXABAY_KEY;
+      try { return localStorage.getItem('pixabay_key') || ''; } catch (e) { return ''; }
+    }
+
+    function paintHero(el, info) {
+      el.style.backgroundImage = 'url("' + info.img + '")';
+      el.innerHTML = '<a href="' + info.page + '" target="_blank" rel="noopener">Pixabay · ' + info.user + '</a>';
+      el.classList.add('on');
+    }
+
+    function loadHero(el) {
+      var q = el.getAttribute('data-q');
+      var cacheKey = 'pixabay:' + q;
+      try {
+        var cached = sessionStorage.getItem(cacheKey);
+        if (cached) { paintHero(el, JSON.parse(cached)); return; }
+      } catch (e) {}
+      var key = getKey();
+      if (!key) return;                               // 키가 없으면 이미지 없이 표시
+      var url = 'https://pixabay.com/api/?key=' + encodeURIComponent(key) +
+                '&q=' + encodeURIComponent(q) + '&image_type=photo&orientation=horizontal&safesearch=true&per_page=5';
+      fetch(url)
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          var h = j.hits && j.hits[0];
+          if (!h) return;
+          var info = { img: h.webformatURL, page: h.pageURL, user: h.user };
+          try { sessionStorage.setItem(cacheKey, JSON.stringify(info)); } catch (e) {}
+          paintHero(el, info);
+        })
+        .catch(function () {});
+    }
+
+    document.querySelectorAll('.hero').forEach(loadHero);
+
+    /* ---- API 키 입력 칸 ---- */
+    var keyMsg = document.getElementById('keyMsg');
+    if (getKey()) keyMsg.textContent = '✅ 키가 설정되어 있습니다. (키는 이 브라우저에만 저장됩니다)';
+
+    document.getElementById('keyForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var v = document.getElementById('keyInput').value.trim();
+      if (!v) { keyMsg.textContent = '⚠️ 키를 입력해 주세요.'; return; }
+      try { localStorage.setItem('pixabay_key', v); } catch (err) {
+        keyMsg.textContent = '⚠️ 이 브라우저에서는 저장할 수 없어요.'; return;
+      }
+      document.getElementById('keyInput').value = '';
+      keyMsg.textContent = '✅ 저장했어요! 이미지를 불러옵니다…';
+      document.querySelectorAll('.hero').forEach(loadHero);
+    });
+
+    document.getElementById('keyClear').addEventListener('click', function () {
+      try { localStorage.removeItem('pixabay_key'); sessionStorage.clear(); } catch (err) {}
+      document.querySelectorAll('.hero').forEach(function (h) { h.classList.remove('on'); h.innerHTML = ''; h.style.backgroundImage = ''; });
+      keyMsg.textContent = '🗑️ 키를 삭제했어요.';
+    });
+
+    window.addEventListener('hashchange', show);
+    show();
+  </script>
+</body>
+</html>
