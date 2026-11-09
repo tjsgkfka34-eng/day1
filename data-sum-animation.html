@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>배열 합계 애니메이션</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      color: #f1eefe; line-height: 1.6; padding: 16px; min-height: 100vh;
+      background: radial-gradient(circle at 15% 10%, #4b2a8f 0, transparent 45%),
+                  radial-gradient(circle at 85% 20%, #0f6fb8 0, transparent 40%),
+                  linear-gradient(160deg, #130f2e, #231a52 55%, #101a3a);
+      background-attachment: fixed;
+    }
+    .wrap { max-width: 1040px; margin: 0 auto; }
+    h1 {
+      font-size: 1.7rem; margin-bottom: 4px;
+      background: linear-gradient(90deg, #ffd166, #ff6fb5, #7cf2ff, #ffd166);
+      background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+      animation: shine 6s linear infinite;
+    }
+    @keyframes shine { to { background-position: 300% 0; } }
+    .sub { color: #c6bdf0; margin-bottom: 14px; font-size: .95rem; }
+
+    .modes { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .modes button { padding: 8px 16px; }
+    .modes button.act { background: linear-gradient(135deg, #ff6fb5, #ffb86f); border-color: transparent; color: #2a0f2a; font-weight: bold; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .full { grid-column: 1 / -1; }
+    @media (max-width: 780px) { .grid { grid-template-columns: 1fr; } }
+    .box {
+      background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.16);
+      border-radius: 16px; padding: 14px; backdrop-filter: blur(6px);
+      box-shadow: 0 8px 28px rgba(0,0,0,.28);
+    }
+    .box h2 { font-size: 1rem; margin-bottom: 8px; color: #ffd166; }
+
+    /* 코드 */
+    pre.code { font-family: Consolas, "D2Coding", monospace; font-size: .92rem; overflow-x: auto; background: rgba(8,6,24,.55); border-radius: 10px; padding: 8px; }
+    .ln { display: block; padding: 2px 8px; border-radius: 6px; white-space: pre; border-left: 4px solid transparent; color: #d7d0ff; transition: .2s; }
+    .ln b { display: inline-block; width: 24px; color: #6d65a8; font-weight: normal; }
+    .ln.on { background: linear-gradient(90deg, rgba(255,209,102,.35), rgba(255,111,181,.12)); border-left-color: #ffd166; color: #fff; }
+    .ln.sub { background: rgba(255,255,255,.07); border-left-color: #7cf2ff; }
+    .bug { color: #ff7b8a; font-weight: bold; }
+
+    /* 설명 */
+    .desc { background: rgba(124,242,255,.1); border: 1px solid rgba(124,242,255,.3); border-radius: 12px; padding: 12px; min-height: 100px; }
+    .desc b { color: #ffd166; }
+    .desc code { background: rgba(0,0,0,.35); padding: 0 5px; border-radius: 4px; color: #7cf2ff; }
+    .calc { margin-top: 8px; font-family: Consolas, monospace; font-size: 1.25rem; font-weight: bold; color: #7cf2ff; text-shadow: 0 0 12px rgba(124,242,255,.7); }
+    .calc.bad { color: #ff7b8a; text-shadow: 0 0 12px rgba(255,90,110,.8); }
+    .calc.pop { animation: pop .5s; }
+    @keyframes pop { 0% { transform: scale(.6); opacity: 0; } 60% { transform: scale(1.12); } 100% { transform: scale(1); opacity: 1; } }
+
+    /* 변수 */
+    .vars { display: flex; gap: 10px; flex-wrap: wrap; }
+    .var { min-width: 110px; text-align: center; border-radius: 12px; padding: 6px 12px; background: rgba(0,0,0,.3); border: 2px solid rgba(255,255,255,.18); }
+    .var .n { font-size: .8rem; color: #b7acf0; }
+    .var .v { font-size: 1.4rem; font-weight: bold; font-family: Consolas, monospace; color: #fff; }
+    .var.flash { animation: vflash .7s; }
+    @keyframes vflash { 0% { background: #ffd166; transform: scale(1.12); } 100% { background: rgba(0,0,0,.3); transform: scale(1); } }
+
+    /* 무대: 배열 */
+    .stage { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; padding: 10px 0 4px; }
+    .brk { font-size: 5rem; font-weight: 100; line-height: 1; color: #ff6fb5; text-shadow: 0 0 18px rgba(255,111,181,.8); }
+    .cards { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; }
+    .card {
+      position: relative; width: 210px; padding: 14px 14px 12px; border-radius: 16px; text-align: center;
+      background: linear-gradient(160deg, rgba(255,255,255,.14), rgba(255,255,255,.04));
+      border: 2px solid rgba(255,255,255,.25); transition: .3s;
+    }
+    .card .idx { position: absolute; top: -12px; left: 12px; background: #7c5cff; border-radius: 8px; padding: 0 10px; font-family: Consolas, monospace; font-size: .85rem; }
+    .card .em { font-size: 3rem; display: block; filter: drop-shadow(0 4px 8px rgba(0,0,0,.4)); }
+    .card .kv { display: flex; justify-content: space-between; font-family: Consolas, monospace; font-size: .95rem; padding: 3px 8px; margin-top: 4px; background: rgba(0,0,0,.28); border-radius: 8px; }
+    .card .kv span:last-child { color: #ffd166; font-weight: bold; }
+    .card .ptr { position: absolute; top: -34px; right: 10px; opacity: 0; transition: .3s; background: #ffd166; color: #3a2400; font-weight: bold; padding: 1px 10px; border-radius: 999px; font-family: Consolas, monospace; }
+    .card .ptr::after { content: ""; position: absolute; bottom: -6px; left: 50%; margin-left: -6px; border: 6px solid transparent; border-bottom: 0; border-top-color: #ffd166; }
+    .card .res { margin-top: 6px; min-height: 26px; font-family: Consolas, monospace; font-weight: bold; color: #7dffb0; }
+    .card.cur { border-color: #ffd166; transform: translateY(-8px) scale(1.04); box-shadow: 0 0 0 3px rgba(255,209,102,.25), 0 0 32px rgba(255,209,102,.55); }
+    .card.cur .em { animation: bounce .8s infinite; }
+    .card.cur .ptr { opacity: 1; }
+    .card.done { border-color: #7dffb0; box-shadow: 0 0 20px rgba(125,255,176,.35); }
+    .card.badcard { border-color: #ff5a6e; box-shadow: 0 0 28px rgba(255,90,110,.6); animation: shake .5s; }
+    .card.badcard .res { color: #ff7b8a; }
+    @keyframes bounce { 50% { transform: translateY(-8px) rotate(-6deg); } }
+    @keyframes shake { 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(6px); } }
+    .undef { position: absolute; left: 6px; right: 6px; bottom: -30px; background: #ff5a6e; color: #fff; border-radius: 8px; font-size: .8rem; padding: 2px 6px; font-family: Consolas, monospace; z-index: 2; }
+
+    /* 합계 */
+    .sumwrap { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 30px; flex-wrap: wrap; }
+    .sumbox {
+      min-width: 240px; text-align: center; padding: 12px 24px; border-radius: 18px;
+      background: linear-gradient(135deg, #3a1d8f, #0f6fb8); border: 2px solid #7cf2ff;
+      box-shadow: 0 0 28px rgba(124,242,255,.45);
+    }
+    .sumbox .n { font-size: .85rem; color: #bfe9ff; letter-spacing: 2px; }
+    .sumbox .big { font-size: 2.6rem; font-weight: bold; font-family: Consolas, monospace; text-shadow: 0 0 18px rgba(255,255,255,.7); }
+    .sumbox.bad { background: linear-gradient(135deg, #7a1230, #b8321a); border-color: #ff7b8a; box-shadow: 0 0 28px rgba(255,90,110,.6); animation: shake .5s; }
+    .sumbox.glow { animation: glow .8s; }
+    @keyframes glow { 0% { transform: scale(1.1); box-shadow: 0 0 60px rgba(255,209,102,.95); } 100% { transform: scale(1); } }
+    .fly { position: fixed; left: 0; top: 0; z-index: 50; pointer-events: none; font-weight: bold; font-family: Consolas, monospace;
+      background: radial-gradient(circle at 30% 30%, #fff3b0, #ffb300); color: #4a2f00; border-radius: 999px; padding: 4px 12px; box-shadow: 0 0 20px #ffd166; }
+    .fly.bad { background: radial-gradient(circle at 30% 30%, #ffb3bd, #ff3d57); color: #fff; box-shadow: 0 0 22px #ff5a6e; }
+    .conf { position: fixed; top: -30px; z-index: 60; pointer-events: none; animation: fall linear forwards; }
+    @keyframes fall { to { transform: translateY(110vh) rotate(540deg); } }
+
+    /* 컨트롤 */
+    .ctrl { position: sticky; bottom: 0; padding: 12px 0 4px; margin-top: 14px; background: linear-gradient(transparent, #130f2e 35%); }
+    .btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+    button, select { font: inherit; padding: 8px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,.3); background: rgba(255,255,255,.1); color: #f1eefe; cursor: pointer; }
+    select option { color: #222; }
+    button:hover { background: rgba(255,255,255,.22); }
+    button.main { background: linear-gradient(135deg, #ffd166, #ff9e5e); border-color: transparent; color: #3a2400; font-weight: bold; }
+    button:disabled { opacity: .35; cursor: default; }
+    input[type=range] { width: 100%; accent-color: #ff6fb5; }
+    .step { font-size: .9rem; color: #c6bdf0; }
+    .note { margin-top: 14px; border-left: 4px solid #ff7b8a; background: rgba(255,90,110,.1); padding: 8px 12px; border-radius: 8px; font-size: .9rem; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>✨ 배열 합계 애니메이션 ✨</h1>
+  <p class="sub">배열 <code>data</code>에서 카드를 하나씩 꺼내 <b>가격 × 수량</b>을 <code>sum</code>에 쌓는 과정을 단계별로 확인해 보세요.</p>
+
+  <div class="modes">
+    <button id="mBad">🐞 내가 쓴 코드 그대로 (amout 오타)</button>
+    <button id="mFix">✅ 오타를 고친 코드 (amount)</button>
+  </div>
+
+  <div class="grid">
+    <div class="box">
+      <h2>📜 코드 (노란 줄이 지금 실행 중)</h2>
+      <pre class="code" id="code"></pre>
+    </div>
+    <div class="box">
+      <h2>💬 지금 무슨 일이 일어나나요?</h2>
+      <div class="desc"><div id="desc"></div><div class="calc" id="calc"></div></div>
+      <h2 style="margin-top:12px">📦 변수</h2>
+      <div class="vars" id="vars"></div>
+    </div>
+
+    <div class="box full">
+      <h2>🧺 배열 data — 카드 2장 (번호는 0부터!)</h2>
+      <div class="stage">
+        <div class="brk">[</div>
+        <div class="cards" id="cards"></div>
+        <div class="brk">]</div>
+      </div>
+      <div class="sumwrap">
+        <div style="font-size:2rem">➕</div>
+        <div class="sumbox" id="sumBox"><div class="n">S U M</div><div class="big" id="sumVal">–</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note" id="note"></div>
+
+  <div class="ctrl">
+    <div class="btns">
+      <button id="first">⏮ 처음</button>
+      <button id="prev">◀ 이전</button>
+      <button id="next" class="main">▶ 다음</button>
+      <button id="play">⏵ 자동재생</button>
+      <label class="step">속도
+        <select id="speed">
+          <option value="2200">느리게</option>
+          <option value="1400" selected>보통</option>
+          <option value="700">빠르게</option>
+        </select>
+      </label>
+      <span class="step" id="stepInfo"></span>
+    </div>
+    <input type="range" id="bar" min="0" value="0">
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const data = [{ p: 100, a: 5 }, { p: 103, a: 52 }];
+  const fmt = n => Number.isNaN(n) ? 'NaN' : n.toLocaleString('ko-KR');
+
+  let mode = 'bad', steps = [], cur = 0, timer = null, shownSum = null;
+
+  function codeLines(fixed) {
+    return [
+      'let data = [',
+      '  { "사과": 100, "amount": 5 },',
+      '  { "사과": 103, "amount": 52 },',
+      ']',
+      'let sum = 0',
+      'for (i of data) {',
+      fixed ? '  sum += i.사과 * i.amount' : '  sum += i.사과 * i.amout   // ← 오타!',
+      '}'
+    ];
+  }
+
+  function build() {
+    const fixed = mode === 'fix';
+    steps = [];
+    let sum = null, i = null, idx = -1, done = 0;
+    const res = [null, null];
+    const snap = (lines, desc, calc, kind, changed, k) =>
+      steps.push({ lines, desc, calc: calc || '', kind: kind || '', changed: changed || '', k,
+        sum, i, idx, done, res: [...res] });
+
+    snap([0, 1, 2, 3], '배열 <b>data</b>를 만들었어요. 대괄호 <code>[ ]</code> 안에 <b>카드(객체) 2장</b>이 들어 있고, 번호(인덱스)는 <b>0, 1</b>입니다. 카드마다 사과 가격(<code>"사과"</code>)과 수량(<code>"amount"</code>)이 있어요.', '', 'init');
+
+    sum = 0;
+    snap([4], '합계를 모을 변수 <b>sum</b>을 <b>0</b>으로 시작합니다. 텅 빈 저금통에서 출발해요 🐷', 'sum = 0', 'init', 'sum');
+
+    for (let k = 0; k < data.length; k++) {
+      const { p, a } = data[k];
+      idx = k; i = `data[${k}]`;
+      snap([5, 1 + k], `<b>${k + 1}번째 바퀴</b> · 배열의 <b>${k}번 카드</b>를 꺼내 변수 <b>i</b>에 담았어요. 카드가 2장이라서 중괄호 <code>{ }</code> 안의 내용이 <b>총 2번</b> 반복됩니다.`, `i = data[${k}]`, 'pick', 'i', k);
+
+      if (fixed) {
+        const val = p * a;
+        res[k] = val;
+        snap([6], '먼저 오른쪽을 계산해요. <code>i.사과</code>는 <b>가격</b>, <code>i.amount</code>는 <b>수량</b>이에요. 가격 × 수량!', `${p} × ${a} = ${fmt(val)}`, 'calc', '', k);
+        const prev = sum; sum += val; done = k + 1;
+        snap([6], '계산한 값을 <b>sum</b>에 누적합니다. <code>sum += ...</code>은 <code>sum = sum + ...</code>과 같아요.', `${fmt(prev)} + ${fmt(val)} = ${fmt(sum)}`, 'add', 'sum', k);
+      } else {
+        res[k] = NaN;
+        snap([6], '<code>i.amout</code>를 찾아봤지만 카드에는 <b>amout</b>라는 이름이 없고 <b>amount</b>만 있어요. 없는 이름을 읽으면 에러가 아니라 <b>undefined</b>가 됩니다. 숫자 × undefined = <b>NaN</b> (숫자가 아님)!', `${p} × undefined = NaN`, 'badcalc', '', k);
+        const prev = sum; sum = NaN; done = k + 1;
+        snap([6], '<b>NaN</b>을 더하면 결과도 항상 <b>NaN</b>이에요. 한 번 NaN이 되면 이후에 아무리 더해도 NaN입니다.', `${fmt(prev)} + NaN = NaN`, 'badadd', 'sum', k);
+      }
+    }
+
+    idx = -1; i = null;
+    snap([7], '배열의 <b>마지막 카드</b>까지 모두 꺼냈어요. 더 꺼낼 카드가 없어서 <b>반복문을 빠져나옵니다</b>.', '', 'exit', 'i');
+    snap([], fixed
+      ? `최종 합계는 <b>${fmt(sum)}</b>! 🎉 (100×5 + 103×52 = 500 + 5,356)`
+      : '최종 sum은 <b>NaN</b> 💥 오타 하나가 결과 전체를 망쳤어요. 위의 <b>“오타를 고친 코드”</b> 버튼으로 정상 결과를 확인해 보세요.',
+      fixed ? `sum = ${fmt(sum)}` : 'sum = NaN', fixed ? 'win' : 'lose');
+    $('bar').max = steps.length - 1;
+    $('note').innerHTML = fixed
+      ? '💡 이 코드는 정상 동작합니다. (참고: 원본의 <code>for (i of data)</code>는 <code>const</code>를 빼도 일반 스크립트에선 돌아가지만, <code>for (const i of data)</code>로 쓰는 것이 안전해요.)'
+      : '🐞 <b>원본의 문제</b>: <code>i.amout</code>는 오타예요. 카드의 이름은 <b>amount</b>입니다. 또 이 코드에는 <code>console.log(sum)</code>이 없어서 실제로는 결과가 화면에 안 보여요. 애니메이션에서는 sum 값을 직접 보여 줍니다.';
+  }
+
+  /* ---------- 화면 ---------- */
+  function buildStatic() {
+    const fixed = mode === 'fix';
+    $('code').innerHTML = codeLines(fixed).map((t, n) => {
+      let h = t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+      h = h.replace(/amout/, '<span class="bug">amout</span>');
+      return `<span class="ln" id="ln${n}"><b>${n + 1}</b>${h}</span>`;
+    }).join('');
+    $('cards').innerHTML = data.map((d, k) => `
+      <div class="card" id="c${k}">
+        <span class="idx">data[${k}]</span>
+        <span class="ptr">i 👇</span>
+        <span class="em">🍎</span>
+        <div class="kv"><span>사과</span><span>${d.p}</span></div>
+        <div class="kv"><span>amount</span><span>${d.a}</span></div>
+        <div class="res" id="r${k}"></div>
+        <div class="undef" id="u${k}" style="display:none">i.amout → undefined</div>
+      </div>`).join('');
+    $('vars').innerHTML = ['sum', 'i'].map(n =>
+      `<div class="var" id="v_${n}"><div class="n">${n}</div><div class="v">–</div></div>`).join('');
+  }
+
+  function setSum(val, animate) {
+    const el = $('sumVal'), box = $('sumBox');
+    box.classList.toggle('bad', Number.isNaN(val));
+    const from = shownSum;
+    shownSum = val;
+    if (val === null) { el.textContent = '–'; return; }
+    if (!animate || Number.isNaN(val) || from === null || Number.isNaN(from) || from === val) { el.textContent = fmt(val); return; }
+    const t0 = performance.now(), dur = 700;
+    (function tick(t) {
+      const r = Math.min(1, (t - t0) / dur);
+      el.textContent = fmt(Math.round(from + (val - from) * r));
+      if (r < 1 && shownSum === val) requestAnimationFrame(tick);
+    })(t0);
+    box.classList.remove('glow'); void box.offsetWidth; box.classList.add('glow');
+  }
+
+  function fly(k, text, bad) {
+    const a = $('c' + k).getBoundingClientRect(), b = $('sumBox').getBoundingClientRect();
+    const el = document.createElement('div');
+    el.className = 'fly' + (bad ? ' bad' : '');
+    el.textContent = text;
+    document.body.appendChild(el);
+    const fx = a.left + a.width / 2 - 30, fy = a.top + a.height / 2;
+    const tx = b.left + b.width / 2 - 30, ty = b.top + b.height / 2;
+    const anim = el.animate([
+      { transform: `translate(${fx}px,${fy}px) scale(.5)`, opacity: 0 },
+      { transform: `translate(${fx}px,${fy - 40}px) scale(1.25)`, opacity: 1, offset: .3 },
+      { transform: `translate(${tx}px,${ty}px) scale(.8)`, opacity: .9 }
+    ], { duration: 1000, easing: 'ease-in-out' });
+    anim.onfinish = () => el.remove();
+  }
+
+  function confetti() {
+    const e = ['🎉', '✨', '🍎', '⭐', '💖', '🎊'];
+    for (let n = 0; n < 40; n++) {
+      const s = document.createElement('span');
+      s.className = 'conf';
+      s.textContent = e[n % e.length];
+      s.style.left = Math.random() * 100 + 'vw';
+      s.style.fontSize = 16 + Math.random() * 20 + 'px';
+      s.style.animationDuration = 2 + Math.random() * 2 + 's';
+      s.style.animationDelay = Math.random() * .6 + 's';
+      document.body.appendChild(s);
+      setTimeout(() => s.remove(), 5000);
+    }
+  }
+
+  function render(animate) {
+    const s = steps[cur];
+    $('mBad').classList.toggle('act', mode === 'bad');
+    $('mFix').classList.toggle('act', mode === 'fix');
+    codeLines(mode === 'fix').forEach((_, n) => {
+      const el = $('ln' + n);
+      el.classList.toggle('on', n === s.lines[0]);
+      el.classList.toggle('sub', n !== s.lines[0] && s.lines.includes(n));
+    });
+    $('desc').innerHTML = s.desc;
+    const c = $('calc');
+    c.textContent = s.calc;
+    c.classList.toggle('bad', s.kind === 'badcalc' || s.kind === 'badadd' || s.kind === 'lose');
+    c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop');
+
+    const vals = { sum: s.sum === null ? '–' : fmt(s.sum), i: s.i === null ? '–' : s.i };
+    for (const n of ['sum', 'i']) {
+      const el = $('v_' + n);
+      el.querySelector('.v').textContent = vals[n];
+      el.classList.remove('flash');
+      if (s.changed === n) { void el.offsetWidth; el.classList.add('flash'); }
+    }
+
+    data.forEach((_, k) => {
+      const card = $('c' + k);
+      card.classList.toggle('cur', k === s.idx);
+      card.classList.toggle('done', k < s.done && !(mode === 'bad'));
+      const bad = s.kind === 'badcalc' && k === s.k;
+      card.classList.remove('badcard');
+      if (bad || (mode === 'bad' && k < s.done)) { if (bad) { void card.offsetWidth; card.classList.add('badcard'); } }
+      $('u' + k).style.display = (k === s.k && s.kind === 'badcalc') ? 'block' : 'none';
+      const r = s.res[k];
+      $('r' + k).textContent = r === null ? '' : (Number.isNaN(r) ? '💥 NaN' : '= ' + fmt(r));
+    });
+
+    setSum(s.sum, animate && (s.kind === 'add'));
+    if (animate && s.kind === 'add') fly(s.k, '+' + fmt(s.res[s.k]), false);
+    if (animate && s.kind === 'badadd') fly(s.k, '+NaN', true);
+    if (animate && s.kind === 'win') confetti();
+
+    $('bar').value = cur;
+    $('stepInfo').textContent = `${cur + 1} / ${steps.length} 단계`;
+    $('prev').disabled = $('first').disabled = cur === 0;
+    $('next').disabled = cur === steps.length - 1;
+    if (cur === steps.length - 1) stop();
+  }
+
+  function go(n) {
+    const target = Math.max(0, Math.min(steps.length - 1, n));
+    const anim = target === cur + 1;
+    cur = target;
+    render(anim);
+  }
+  function stop() { clearInterval(timer); timer = null; $('play').textContent = '⏵ 자동재생'; }
+  function play() {
+    if (cur === steps.length - 1) { cur = 0; render(false); }
+    $('play').textContent = '⏸ 멈춤';
+    timer = setInterval(() => go(cur + 1), +$('speed').value);
+  }
+  function setMode(m) {
+    stop(); mode = m; cur = 0; shownSum = null;
+    build(); buildStatic(); render(false);
+  }
+
+  $('next').onclick = () => { stop(); go(cur + 1); };
+  $('prev').onclick = () => { stop(); go(cur - 1); };
+  $('first').onclick = () => { stop(); go(0); };
+  $('play').onclick = () => timer ? stop() : play();
+  $('speed').onchange = () => { if (timer) { stop(); play(); } };
+  $('bar').oninput = e => { stop(); go(+e.target.value); };
+  $('mBad').onclick = () => setMode('bad');
+  $('mFix').onclick = () => setMode('fix');
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') $('next').click();
+    if (e.key === 'ArrowLeft') $('prev').click();
+  });
+
+  setMode('bad');
+</script>
+</body>
+</html>

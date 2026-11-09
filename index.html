@@ -61,6 +61,17 @@
     .card h2 { font-size: 1.1rem; margin-bottom: 6px; }
     footer { text-align: center; color: #778; padding: 20px; font-size: .9rem; }
 
+    /* 학습 애니메이션 버튼 */
+    .tools { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+    .tools button {
+      font: inherit; cursor: pointer; padding: 10px 16px; border-radius: 10px;
+      border: 2px solid #c9efff; background: #fff; color: #0b5b7a;
+    }
+    .tools button:hover { background: #e3f6ff; }
+    .tools button.active { background: #ffd966; border-color: #ffc933; color: #5a3d00; font-weight: bold; }
+    .viewer { width: 100%; height: 80vh; min-height: 480px; border: 0; border-radius: 12px; background: #130f2e; box-shadow: 0 2px 8px rgba(80,160,200,.3); }
+    .viewer-empty { color: #778; padding: 40px 0; text-align: center; }
+
     /* 모바일 */
     @media (max-width: 700px) {
       .hamburger { display: block; }
@@ -88,6 +99,7 @@
           <li><a href="#food">음식점</a></li>
           <li><a href="#bus">버스</a></li>
           <li><a href="#sight">관광지</a></li>
+          <li><a href="#study">배열학습</a></li>
         </ul>
       </nav>
     </div>
@@ -145,6 +157,18 @@
         <div class="card"><h2>🌋 만장굴</h2><p>세계적 규모의 용암동굴입니다.</p></div>
       </div>
     </section>
+
+    <section class="page" id="study">
+      <h1>🔢 배열학습 애니메이션</h1>
+      <p class="lead">버튼을 누르면 해당 애니메이션이 아래에 표시됩니다.</p>
+      <div class="tools" id="tools">
+        <button data-src="array-animation.html">1. 숫자 배열 합계</button>
+        <button data-src="shopping-array-animation.html">2. 장바구니 배열(3종)</button>
+        <button data-src="data-sum-animation.html">3. 배열 합계 · NaN 오타</button>
+        <button data-src="cart-loop-animation.html">4. 장바구니 반복문(50개)</button>
+      </div>
+      <div id="viewerBox"><p class="viewer-empty">👆 위의 버튼을 눌러 보세요.</p></div>
+    </section>
   </main>
 
   <footer>© 일본 여행 가이드 · 이재오</footer>
@@ -174,6 +198,19 @@
       var open = nav.classList.toggle('open');
       burger.classList.toggle('open', open);
       burger.setAttribute('aria-expanded', open);
+    });
+
+    document.querySelectorAll('#tools button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        document.querySelectorAll('#tools button').forEach(function (x) { x.classList.toggle('active', x === b); });
+        var box = document.getElementById('viewerBox');
+        box.innerHTML = '';
+        var f = document.createElement('iframe');
+        f.className = 'viewer';
+        f.title = b.textContent;
+        f.src = b.getAttribute('data-src');
+        box.appendChild(f);
+      });
     });
 
     window.addEventListener('hashchange', show);

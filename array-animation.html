@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>자바스크립트 배열 · 반복문 애니메이션</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      background: #fffaf0; color: #223; line-height: 1.6;
+      padding: 16px;
+    }
+    .wrap { max-width: 1000px; margin: 0 auto; }
+    h1 { font-size: 1.4rem; color: #2a9fd6; margin-bottom: 4px; }
+    .sub { color: #667; margin-bottom: 14px; font-size: .95rem; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+    .box { background: #fff; border-radius: 12px; padding: 14px; box-shadow: 0 2px 8px rgba(80,160,200,.2); border-top: 4px solid #c9efff; }
+    .box h2 { font-size: 1rem; margin-bottom: 8px; color: #0b5b7a; }
+
+    /* 코드 */
+    pre.code { font-family: Consolas, "D2Coding", monospace; font-size: .92rem; overflow-x: auto; }
+    .ln { display: block; padding: 2px 8px; border-radius: 6px; white-space: pre; border-left: 4px solid transparent; }
+    .ln b { display: inline-block; width: 22px; color: #99a; font-weight: normal; }
+    .ln.on { background: #fff1b8; border-left-color: #ffb300; }
+    .cm { color: #8a8; }
+
+    /* 설명 */
+    .desc { background: #e8f7ff; border-radius: 10px; padding: 12px; min-height: 76px; font-size: 1rem; }
+    .calc { margin-top: 6px; font-family: Consolas, monospace; font-size: 1.15rem; color: #d2552b; font-weight: bold; }
+
+    /* 변수 */
+    .vars { display: flex; gap: 10px; flex-wrap: wrap; }
+    .var { min-width: 96px; text-align: center; background: #f4fbff; border: 2px solid #c9efff; border-radius: 10px; padding: 6px 10px; }
+    .var .n { font-size: .8rem; color: #667; }
+    .var .v { font-size: 1.5rem; font-weight: bold; font-family: Consolas, monospace; color: #0b5b7a; }
+    .var.flash { animation: flash .6s; }
+    @keyframes flash { 0% { background: #ffd966; transform: scale(1.12); } 100% { background: #f4fbff; transform: scale(1); } }
+
+    /* 배열 */
+    .arr { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+    .cell { text-align: center; font-size: .8rem; padding: 4px 0; border-radius: 6px; background: #eef2f5; color: #667; border: 2px solid transparent; transition: .2s; }
+    .cell.done { background: #c8f2d4; color: #1b6b3a; }
+    .cell.cur { background: #ffb300; color: #fff; border-color: #e68900; transform: scale(1.18); font-weight: bold; z-index: 1; }
+    .hint { font-size: .8rem; color: #889; margin-top: 6px; }
+
+    /* 콘솔 */
+    .console { background: #1e2a33; color: #bff3c8; border-radius: 8px; padding: 10px 12px; font-family: Consolas, monospace; min-height: 90px; }
+    .console div::before { content: "> "; color: #6aa; }
+    .console .empty { color: #7a8c96; }
+    .console .empty::before { content: ""; }
+
+    /* 컨트롤 */
+    .ctrl { position: sticky; bottom: 0; background: #fffaf0; padding: 12px 0 4px; margin-top: 14px; }
+    .btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+    button, select { font: inherit; padding: 8px 14px; border-radius: 8px; border: 2px solid #c9efff; background: #fff; color: #0b5b7a; cursor: pointer; }
+    button:hover { background: #e3f6ff; }
+    button.main { background: #ffd966; border-color: #ffc933; color: #5a3d00; font-weight: bold; }
+    button:disabled { opacity: .4; cursor: default; }
+    input[type=range] { width: 100%; accent-color: #2a9fd6; }
+    .step { font-size: .9rem; color: #556; }
+    .note { background: #fff4f4; border-left: 4px solid #ffc2d4; padding: 8px 12px; border-radius: 6px; font-size: .88rem; margin-top: 14px; color: #664; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔢 자바스크립트 배열 · 반복문 애니메이션</h1>
+  <p class="sub">코드를 한 줄씩 실행하면서 변수와 결과가 어떻게 바뀌는지 눈으로 확인해 보세요. <b>▶ 다음</b>을 눌러 한 단계씩 진행합니다.</p>
+
+  <div class="grid">
+    <div class="box">
+      <h2>📜 코드 (노란 줄이 지금 실행 중)</h2>
+      <pre class="code" id="code"></pre>
+    </div>
+    <div class="box">
+      <h2>💬 지금 무슨 일이 일어나나요?</h2>
+      <div class="desc"><div id="desc"></div><div class="calc" id="calc"></div></div>
+      <h2 style="margin-top:12px">📦 변수</h2>
+      <div class="vars" id="vars"></div>
+    </div>
+    <div class="box" style="grid-column: 1 / -1">
+      <h2>🧺 배열 data (칸 100개, 번호는 0부터 시작)</h2>
+      <div class="arr" id="arr"></div>
+      <p class="hint">🟧 지금 꺼내는 칸 &nbsp; 🟩 이미 sum에 더한 칸 &nbsp; ⬜ 아직 안 한 칸 &nbsp;·&nbsp; 칸에 마우스를 올리면 인덱스가 보입니다.</p>
+    </div>
+    <div class="box" style="grid-column: 1 / -1">
+      <h2>🖥️ 콘솔 출력 (console.log 결과)</h2>
+      <div class="console" id="out"></div>
+    </div>
+  </div>
+
+  <div class="note">
+    ⚠️ 원본 코드의 참고 사항: <code>let cot=8</code>은 <code>cnt</code>의 오타로 보이며 <code>cot</code>은 이후 쓰이지 않습니다.
+    <code>cnt = cnt=1</code>은 <code>cnt</code>를 선언하지 않았지만, 일반 스크립트에서는 오류 없이 <code>cnt</code>가 1이 됩니다.
+    (바르게 쓰려면 <code>let cnt = 8</code>, <code>cnt += 1</code> 또는 <code>cnt++</code>)
+  </div>
+
+  <div class="ctrl">
+    <div class="btns">
+      <button id="first">⏮ 처음</button>
+      <button id="prev">◀ 이전</button>
+      <button id="next" class="main">▶ 다음</button>
+      <button id="play">⏵ 자동재생</button>
+      <button id="skip">⏭ 반복문 끝으로</button>
+      <label class="step">속도
+        <select id="speed">
+          <option value="1200">느리게</option>
+          <option value="600" selected>보통</option>
+          <option value="200">빠르게</option>
+          <option value="40">아주 빠르게</option>
+        </select>
+      </label>
+      <span class="step" id="stepInfo"></span>
+    </div>
+    <input type="range" id="bar" min="0" value="0">
+  </div>
+</div>
+
+<script>
+  /* ---------- 표시용 코드 ---------- */
+  const CODE = [
+    'const data = [1, 2, 3, 4, ... , 99, 100]',
+    'console.log(data[0])',
+    'let sum = 10',
+    'sum += 7',
+    'console.log(sum)',
+    'let cot = 8',
+    'cnt = cnt = 1',
+    'for (const i of data) {',
+    '    sum += i',
+    '}',
+    'console.log(sum)'
+  ];
+
+  /* ---------- 단계(steps) 미리 계산 ---------- */
+  const data = Array.from({ length: 100 }, (_, k) => k + 1);
+  const steps = [];
+  const v = { sum: null, cnt: null, cot: null, i: null };
+  const out = [];
+  let idx = -1, done = 0;
+
+  function snap(line, desc, calc, changed) {
+    steps.push({ line, desc, calc: calc || '', changed: changed || '', vars: { ...v }, out: [...out], idx, done });
+  }
+
+  snap(0, '배열 <b>data</b>가 만들어졌어요. 1부터 100까지 100개의 값이 칸에 차례대로 들어 있습니다. 칸 번호(인덱스)는 <b>0</b>부터 시작해요!');
+  out.push(data[0]);
+  idx = 0;
+  snap(1, '<b>data[0]</b>은 배열의 <b>첫 번째</b> 칸(0번)의 값입니다. 그래서 1이 출력돼요. (대괄호 안 숫자를 바꾸면 다른 칸을 볼 수 있어요)', 'data[0] → 1');
+  idx = -1;
+  v.sum = 10;
+  snap(2, '변수 <b>sum</b>을 만들고 10을 넣었어요.', 'sum = 10', 'sum');
+  v.sum = 17;
+  snap(3, '<b>sum += 7</b>은 <b>sum = sum + 7</b>과 같은 뜻이에요. 기존 값에 7을 더해서 다시 sum에 저장합니다.', '10 + 7 = 17', 'sum');
+  out.push(v.sum);
+  snap(4, 'sum의 현재 값 17을 콘솔에 출력해요.');
+  v.cot = 8;
+  snap(5, '변수 <b>cot</b>에 8을 넣었어요. (아마 cnt를 쓰려다 생긴 오타입니다. 이후에는 쓰이지 않아요.)', 'cot = 8', 'cot');
+  v.cnt = 1;
+  snap(6, '<b>cnt</b>에 1을 넣었어요. (오른쪽부터 계산: cnt = 1 을 먼저 하고, 그 결과를 다시 cnt에 넣습니다.)', 'cnt = 1', 'cnt');
+
+  for (let k = 0; k < data.length; k++) {
+    idx = k; v.i = data[k];
+    snap(7, `<b>${k + 1}번째 바퀴</b> · 배열의 <b>${k}번 칸</b>에서 값 <b>${data[k]}</b>을(를) 꺼내 변수 <b>i</b>에 저장해요.`, `i = data[${k}] = ${data[k]}`, 'i');
+    const prev = v.sum;
+    v.sum += v.i;
+    done = k + 1;
+    snap(8, `꺼낸 값 i를 sum에 더해서 <b>누적</b>합니다.`, `${prev} + ${data[k]} = ${v.sum}`, 'sum');
+  }
+  idx = -1; v.i = null;
+  snap(9, '배열에서 더 꺼낼 값이 없어서 <b>반복문을 빠져나왔어요</b>. 이제 sum에는 17 + (1+2+…+100) = 17 + 5050 이 누적되어 있습니다.', 'sum = ' + v.sum);
+  out.push(v.sum);
+  snap(10, '최종 누적된 총합 <b>' + v.sum + '</b>을 콘솔에 출력해요. 끝! 🎉');
+  const LOOP_END = steps.findIndex(s => s.line === 9);
+
+  /* ---------- 화면 만들기 ---------- */
+  const $ = id => document.getElementById(id);
+  $('code').innerHTML = CODE.map((t, n) =>
+    `<span class="ln" id="ln${n}"><b>${n + 1}</b>${t.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</span>`).join('');
+  $('arr').innerHTML = data.map((x, k) => `<div class="cell" id="c${k}" title="인덱스 ${k}">${x}</div>`).join('');
+  $('vars').innerHTML = ['sum', 'cnt', 'cot', 'i'].map(n =>
+    `<div class="var" id="v_${n}"><div class="n">${n}</div><div class="v">–</div></div>`).join('');
+  $('bar').max = steps.length - 1;
+
+  let cur = 0, timer = null;
+
+  function render() {
+    const s = steps[cur];
+    CODE.forEach((_, n) => $('ln' + n).classList.toggle('on', n === s.line));
+    $('desc').innerHTML = s.desc;
+    $('calc').textContent = s.calc;
+    for (const n of ['sum', 'cnt', 'cot', 'i']) {
+      const el = $('v_' + n);
+      el.querySelector('.v').textContent = s.vars[n] === null ? '–' : s.vars[n];
+      el.classList.remove('flash');
+      if (s.changed === n) { void el.offsetWidth; el.classList.add('flash'); }
+    }
+    data.forEach((_, k) => {
+      const c = $('c' + k);
+      c.classList.toggle('cur', k === s.idx && s.line !== 1);
+      c.classList.toggle('done', k < s.done && !(k === s.idx && s.line === 7));
+      if (s.line === 1) c.classList.toggle('cur', k === 0);
+    });
+    const cur0 = $('c' + s.idx);
+    if (cur0 && s.line !== 1) cur0.scrollIntoView({ block: 'nearest' });
+    $('out').innerHTML = s.out.length
+      ? s.out.map(x => `<div>${x}</div>`).join('')
+      : '<div class="empty">(아직 출력된 것이 없어요)</div>';
+    $('bar').value = cur;
+    $('stepInfo').textContent = `${cur + 1} / ${steps.length} 단계`;
+    $('prev').disabled = $('first').disabled = cur === 0;
+    $('next').disabled = cur === steps.length - 1;
+    if (cur === steps.length - 1) stop();
+  }
+
+  function go(n) { cur = Math.max(0, Math.min(steps.length - 1, n)); render(); }
+  function stop() { clearInterval(timer); timer = null; $('play').textContent = '⏵ 자동재생'; }
+  function play() {
+    if (cur === steps.length - 1) cur = 0;
+    $('play').textContent = '⏸ 멈춤';
+    timer = setInterval(() => go(cur + 1), +$('speed').value);
+  }
+
+  $('next').onclick = () => { stop(); go(cur + 1); };
+  $('prev').onclick = () => { stop(); go(cur - 1); };
+  $('first').onclick = () => { stop(); go(0); };
+  $('skip').onclick = () => { stop(); go(LOOP_END); };
+  $('play').onclick = () => timer ? stop() : play();
+  $('speed').onchange = () => { if (timer) { stop(); play(); } };
+  $('bar').oninput = e => { stop(); go(+e.target.value); };
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') $('next').click();
+    if (e.key === 'ArrowLeft') $('prev').click();
+  });
+
+  render();
+</script>
+</body>
+</html>
