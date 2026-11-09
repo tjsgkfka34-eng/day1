@@ -89,7 +89,7 @@ const $ = id => document.getElementById(id);
 const UNIT_M = 100;                 // 1 단위 = 100 m
 const W_KM = 96, H_KM = 64;         // 지형이 덮는 범위(km)
 const NX = 320;                     // 지형 가로 정점 수
-const SEA_DEPTH_M = 70;
+const SEA_DEPTH_M = 100;           // 먼 바다 수심(m). 90m 이상이면 바깥 바다와 색이 이어짐
 const LAT = 33.4;
 const MAX_ELEV = 1947;
 let VEX = 2.5;                      // 지형 높이 과장
@@ -216,7 +216,8 @@ function buildTerrain(h, nx, ny) {
   for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
     const idx = j * nx + i;
     pos[idx * 3] = -WU / 2 + i * WU / (nx - 1);
-    pos[idx * 3 + 1] = h[idx] * VEX / UNIT_M;
+    // 육지는 VEX배 과장, 해저는 파도 골보다 깊게(10배) → 해저가 수면 위로 비쳐 나오지 않음
+    pos[idx * 3 + 1] = h[idx] * (h[idx] < 0 ? 10 : VEX) / UNIT_M;
     pos[idx * 3 + 2] = -HU / 2 + j * HU / (ny - 1);
   }
   const index = [];
@@ -230,7 +231,7 @@ function buildTerrain(h, nx, ny) {
   geo.computeVertexNormals();
   // 높이 + 경사에 따른 색
   const nrm = geo.attributes.normal, tmp = new THREE.Color();
-  const stops = [[-70, '#3b3a2c'], [-8, '#8a7f5e'], [0, '#d8c99b'], [6, '#d4c48f'], [20, '#4d7a2e'], [500, '#3f6d28'],
+  const stops = [[-100, '#3b3a2c'], [-8, '#8a7f5e'], [0, '#d8c99b'], [6, '#d4c48f'], [20, '#4d7a2e'], [500, '#3f6d28'],
                  [900, '#6b6b3c'], [1400, '#6e5f4b'], [1750, '#8a8580'], [1950, '#bdb9b4']];
   for (let i = 0; i < nx * ny; i++) {
     const m = h[i];
@@ -531,6 +532,19 @@ addEventListener('resize', () => {
   buildTerrain(addBathymetry(proceduralHeights(NX, ny), NX, ny), NX, ny);
   updateSun();
   $('msg').remove();
+}
+
+// 주소 매개변수로 상태 지정 가능: ?hour=10.5&date=6-21&cam=sunset&play=0&panel=0&amp=1.5
+{
+  const q = new URLSearchParams(location.search);
+  if (q.has('date')) { $('date').value = q.get('date'); dateMD = q.get('date').split('-').map(Number); }
+  if (q.has('hour')) hour = +q.get('hour');
+  if (q.has('amp')) { ampV = +q.get('amp'); $('amp').value = ampV; $('ampv').textContent = ampV.toFixed(1); }
+  if (q.has('cam') && CAMS[q.get('cam')]) setCam(q.get('cam'));
+  if (q.get('play') === '0') { playing = false; $('play').textContent = '▶ 재생'; }
+  if (q.get('nowater') === '1') water.visible = false;      // 진단용: 지형만 보기
+  if (q.get('panel') === '0') { $('panel').classList.add('collapsed'); $('toggle').textContent = '▸'; }
+  updateSun();
 }
 
 let last = performance.now(), wt = 0;
