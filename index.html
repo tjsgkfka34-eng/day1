@@ -9,15 +9,15 @@
     body {
       font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
       color: #223;
-      background: #f4f8fb;
+      background: #fffaf0;
       line-height: 1.7;
     }
 
     /* 헤더 / 메뉴 */
     header {
       position: sticky; top: 0; z-index: 10;
-      background: #0b6e8a; color: #fff;
-      box-shadow: 0 2px 6px rgba(0,0,0,.2);
+      background: #c9efff; color: #0b5b7a;
+      box-shadow: 0 2px 6px rgba(80,160,200,.25);
     }
     .bar {
       max-width: 960px; margin: 0 auto;
@@ -28,10 +28,10 @@
     nav ul { display: flex; list-style: none; gap: 4px; }
     nav a {
       display: block; padding: 8px 14px; border-radius: 6px;
-      color: #fff; text-decoration: none;
+      color: #0b5b7a; text-decoration: none;
     }
-    nav a:hover { background: rgba(255,255,255,.2); }
-    nav a.active { background: #fff; color: #0b6e8a; font-weight: bold; }
+    nav a:hover { background: rgba(255,255,255,.7); }
+    nav a.active { background: #ffd966; color: #5a3d00; font-weight: bold; }
 
     /* 햄버거 버튼 (모바일에서만 표시) */
     .hamburger {
@@ -40,7 +40,7 @@
     }
     .hamburger span {
       position: absolute; left: 8px; right: 8px; height: 3px;
-      background: #fff; border-radius: 2px; transition: .25s;
+      background: #0b5b7a; border-radius: 2px; transition: .25s;
     }
     .hamburger span:nth-child(1) { top: 12px; }
     .hamburger span:nth-child(2) { top: 19px; }
@@ -54,10 +54,10 @@
     .page { display: none; }
     .page.show { display: block; animation: fade .3s; }
     @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-    h1 { font-size: 1.6rem; margin-bottom: 8px; color: #0b6e8a; }
+    h1 { font-size: 1.6rem; margin-bottom: 8px; color: #2a9fd6; }
     .lead { color: #556; margin-bottom: 20px; }
     .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
-    .card { background: #fff; border-radius: 10px; padding: 18px; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+    .card { background: #fff; border-radius: 12px; padding: 18px; border-top: 4px solid #ffc2d4; box-shadow: 0 2px 8px rgba(255,170,190,.3); }
     .card h2 { font-size: 1.1rem; margin-bottom: 6px; }
     footer { text-align: center; color: #778; padding: 20px; font-size: .9rem; }
 
@@ -66,10 +66,10 @@
       .hamburger { display: block; }
       nav {
         position: absolute; top: 100%; left: 0; right: 0;
-        background: #0b6e8a; max-height: 0; overflow: hidden;
+        background: #e3f6ff; max-height: 0; overflow: hidden;
         transition: max-height .3s;
       }
-      nav.open { max-height: 400px; box-shadow: 0 6px 8px rgba(0,0,0,.2); }
+      nav.open { max-height: 400px; box-shadow: 0 6px 8px rgba(80,160,200,.25); }
       nav ul { flex-direction: column; padding: 8px 16px 16px; }
     }
   </style>
